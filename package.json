@@ -1,0 +1,26 @@
+{
+  "name": "orbis-hackathon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Trust-Protocol/orbis-hackathon.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Trust-Protocol/orbis-hackathon/issues"
+  },
+  "homepage": "https://github.com/Trust-Protocol/orbis-hackathon#readme",
+  "devDependencies": {
+    "@orbisclub/orbis-sdk": "^0.4.4-beta.42"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "neo4j-driver": "^5.3.0"
+  }
+}
