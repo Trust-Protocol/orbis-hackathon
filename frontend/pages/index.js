@@ -1,10 +1,8 @@
 import Head from "next/head"
 import Image from "next/image"
-import { Inter } from "@next/font/google"
 
-const inter = Inter({ subsets: ["latin"] })
 
-export default function Home() {
+export default function Home() {	
 	return (
 		<>
 			<Head>
@@ -19,13 +17,13 @@ export default function Home() {
 				/>
 				<link rel="icon" href="/favicon.ico" />
 			</Head>
-			<main className="text-3xl font-bold bg-gray-300 h-screen">
-				<div className="flex justify-center sticky top-10">
+			<main className="h-screen text-3xl font-bold bg-gray-300">
+				<div className="sticky flex justify-center top-10">
 					<div className="xl:w-96">
 						<div className="relative flex items-stretch w-full mb-4">
 							<input
 								type="search"
-								className="flex-auto min-w-0 block w-full px-3 py-2 text-base font-normal text-gray-700 bg-white bg-clip-padding rounded-l transition ease-in-out m-0 focus:outline-none"
+								className="flex-auto block w-full min-w-0 px-3 py-2 m-0 text-base font-normal text-gray-700 transition ease-in-out bg-white rounded-l bg-clip-padding focus:outline-none"
 								placeholder="Search"
 								aria-label="Search"
 								id="search"
