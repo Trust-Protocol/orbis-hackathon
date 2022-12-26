@@ -6,6 +6,27 @@ import { Table, useAsyncList } from "@nextui-org/react";
 // Initialize orbis
 const orbisSDK = new Orbis();
 
+// Create a neo4j driver instance, also needs to be synchronus
+function startNeo() {
+	try {
+
+		// Set currently to LyghtCode's neo instance. TODO add to env variables
+		const driver = neo4j.driver(
+			'neo4j+s://7b86ca55.databases.neo4j.io', // Replace with the bolt URI of your Neo4j instance
+			neo4j.auth.basic('neo4j', process.env.NEO4J_PASSWORD) // Replace with your Neo4j username and password
+		);
+
+		// Create and set session
+		const session = driver.session();
+		setNeo(session);
+
+	} catch (error) {
+		console.log(error);
+	}
+
+
+};
+
 
 export default function Neo() {
 
@@ -13,6 +34,7 @@ export default function Neo() {
 	const [neoSession, setNeo] = useState();
 	const [orbisData, setData] = useState([]);
 	const [neoData, setFinalData] = useState();
+	const [orbisObj, setOrbisObj] = useState({});
 
 
 
@@ -41,29 +63,10 @@ export default function Neo() {
 		// Verify session is set
 		console.log("Current neo4j session: ");
 		console.log(neoSession);
-	}
+	};
 
 
-	// Create a neo4j driver instance, also needs to be synchronus
-	function startNeo() {
-		try {
 
-			// Set currently to LyghtCode's neo instance. TODO add to env variables
-			const driver = neo4j.driver(
-				'neo4j+s://7b86ca55.databases.neo4j.io', // Replace with the bolt URI of your Neo4j instance
-				neo4j.auth.basic('neo4j', process.env.NEO4J_PASSWORD) // Replace with your Neo4j username and password
-			);
-
-			// Create and set session
-			const session = driver.session();
-			setNeo(session);
-
-		} catch (error) {
-			console.log(error);
-		}
-
-
-	}
 
 	// Pull data from OrbisSDK API - Play with calls here
 	async function pullData() {
@@ -74,9 +77,18 @@ export default function Neo() {
 			let { data, error, status } = await orbisSDK.api.from("orbis_v_profiles").select().range(0, 10);
 			console.log(data);
 
-			// set 
+			// set Data for table
 			setData(data);
 			console.log('first user is ' + orbisData[0].username);
+
+			//set obj for send
+			const orbisRes = await orbisData.reduce((acc, curr) => {
+				acc[curr.did] = curr;
+				return acc;
+			  }, {});
+			setOrbisObj(orbisRes);
+			console.log(orbisObj);
+
 
 
 		} catch (error) {
@@ -97,25 +109,26 @@ export default function Neo() {
 	async function handleData() {
 
 		try {
+
 			// Set currently to LyghtCode's neo instance. TODO add to env variables
 			const driver = neo4j.driver(
 				'neo4j+s://7b86ca55.databases.neo4j.io', // Replace with the bolt URI of your Neo4j instance
 				neo4j.auth.basic('neo4j', process.env.NEXT_PUBLIC_NEO4J_PASSWORD) // Replace with your Neo4j username and password
 			);
-			
+
+
 			// Verify Connect
 			try {
 				await driver.getServerInfo();
 				console.log('Driver created');
-			  } catch (error) {
+			} catch (error) {
 				console.log(`connectivity verification failed. ${error}`);
-			  }
+			}
 
 			// Create and set session
 			const session = driver.session();
 
-
-			const result = await session.run(`UNWIND $orbisData AS orbis MERGE (d:DID {did: orbis.did})`, Object.fromEntries(orbisData));
+			const result = await session.run(`UNWIND $orbisObj AS row CREATE (n:NODE {id: row.did})`, {orbisObj: orbisObj});
 
 			console.log(result);
 
@@ -173,11 +186,12 @@ export default function Neo() {
 					<div className="xl">
 						<div className="relative flex items-end w-full mb-4">
 							<Button rounded ghost shadow color="gradient" auto
-								onPress={pullData}
+								onClick={pullData}
+
 							>Pull Data</Button>
-							<Button rounded ghost shadow color="secondary" auto
+							{/* <Button rounded ghost shadow color="secondary" auto
 								onPress={startDB}
-							>StartNeoDB</Button>
+							>StartNeoDB</Button> */}
 						</div>
 						<Table
 							striped
@@ -214,7 +228,7 @@ export default function Neo() {
 							/>
 						</Table>
 						<Button rounded ghost shadow color="success" auto
-							onPress={handleData()}
+							onClick={handleData}
 						>Send Data to Neo</Button>
 					</div>
 				</div>
