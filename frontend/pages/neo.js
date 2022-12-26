@@ -128,6 +128,7 @@ export default function Neo() {
 			// Create and set session
 			const session = driver.session();
 
+			// Use UNWIND instead of for each because query will be very large with real data
 			const result = await session.run('UNWIND $orbisObj AS orb CREATE (p:PERSON {id: orb.did})', {orbisObj: orbisData});
 
 			console.log(result);
