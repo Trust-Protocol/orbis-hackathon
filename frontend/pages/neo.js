@@ -14,7 +14,7 @@ export default function Neo() {
 	const [orbisData, setData] = useState([]);
 	const [neoData, setFinalData] = useState();
 
-	
+
 
 	useEffect(() => {
 		// Self-explanatory :D
@@ -87,18 +87,48 @@ export default function Neo() {
 
 	};
 
+
+	// Create a User node with DID use UNWIND instead of complex FOREACH - LyghtCode
+	function addUsers(tx, dids) {
+		return tx.run(`UNWIND ${dids} AS map CREATE (n) SET n = map`)
+	};
+
 	// Organize,Remove,Edit the Data Structure from Orbis here
 	async function handleData() {
 
 		try {
+			// Set currently to LyghtCode's neo instance. TODO add to env variables
+			const driver = neo4j.driver(
+				'neo4j+s://7b86ca55.databases.neo4j.io', // Replace with the bolt URI of your Neo4j instance
+				neo4j.auth.basic('neo4j', process.env.NEXT_PUBLIC_NEO4J_PASSWORD) // Replace with your Neo4j username and password
+			);
+			
+			// Verify Connect
+			try {
+				await driver.getServerInfo();
+				console.log('Driver created');
+			  } catch (error) {
+				console.log(`connectivity verification failed. ${error}`);
+			  }
+
+			// Create and set session
+			const session = driver.session();
+
+
+			const result = await session.run(`UNWIND $orbisData AS orbis MERGE (d:DID {did: orbis.did})`, Object.fromEntries(orbisData));
+
+			console.log(result);
+
+
 
 
 
 		} catch (error) {
+			console.log(error);
 
 		}
 
-	}
+	};
 
 	// Send Data to Neo Instance
 	async function sendData() {
@@ -157,7 +187,7 @@ export default function Neo() {
 							shadow={true}
 							aria-label="Dynamic content & infinity pagination"
 							css={{ minWidth: "100%", height: "auto" }}
-							// color=""
+						// color=""
 						>
 							<Table.Header columns={columns}>
 								{(column) => (
@@ -166,8 +196,8 @@ export default function Neo() {
 							</Table.Header>
 							<Table.Body
 								items={orbisData}
-								// loadingState={list.loadingState}
-								// onLoadMore={list.loadMore}
+							// loadingState={list.loadingState}
+							// onLoadMore={list.loadMore}
 							>
 								{(item) => (
 									<Table.Row key={item['did']}>
@@ -184,8 +214,8 @@ export default function Neo() {
 							/>
 						</Table>
 						<Button rounded ghost shadow color="success" auto
-								onPress={sendData}
-							>Send Data to Neo</Button>
+							onPress={handleData()}
+						>Send Data to Neo</Button>
 					</div>
 				</div>
 			</main>
