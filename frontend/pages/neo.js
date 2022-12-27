@@ -49,26 +49,6 @@ export default function Neo() {
 	// Pull data from OrbisSDK API - Play with calls here
 	async function pullData() {
 
-<<<<<<< Updated upstream
-		try {
-
-			// let { data, error, status } = await orbis.api.from("orbis_v_profiles").select().ilike('address', '0x599759f1F068fA830876FC230Ec236DCe5db7F18');
-			let { data, error, status } = await orbisSDK.api.from("orbis_v_profiles").select().range(0, 10);
-			console.log(data);
-
-			// set Data for table
-			setData(data);
-			console.log('first user is ' + orbisData[0].username);
-
-			//set obj for send
-			const orbisRes = await orbisData.reduce((acc, curr) => {
-				acc[curr.did] = curr;
-				return acc;
-			  }, {});
-			setOrbisObj(orbisRes);
-			console.log(orbisObj);
-
-=======
 		// Create a neo4j driver instance
 		const driver = neo4j.driver(
 			'neo4j+s://7b86ca55.databases.neo4j.io', // Replace with the bolt URI of your Neo4j instance
@@ -132,7 +112,6 @@ export default function Neo() {
 				}
 
 			}
->>>>>>> Stashed changes
 
 
 		} catch (error) {
