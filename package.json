@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,11 +18,12 @@
   },
   "homepage": "https://github.com/Trust-Protocol/orbis-hackathon#readme",
   "devDependencies": {
-    "@orbisclub/orbis-sdk": "^0.4.4-beta.42"
+    "@orbisclub/orbis-sdk": "^0.4.4-beta.42",
+    "node-fetch": "^3.3.0"
   },
   "dependencies": {
+    "@gitcoinco/passport-sdk-reader": "^0.1.4",
     "dotenv": "^16.0.3",
-    "neo4j-driver": "^5.3.0",
-    "node-fetch": "^3.3.0"
+    "neo4j-driver": "^5.3.0"
   }
 }
