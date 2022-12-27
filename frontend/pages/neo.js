@@ -81,15 +81,7 @@ export default function Neo() {
 		const session = driver.session();
 
 		try {
-
-			let kaidid = await orbisSDK.getDids("0x2741dB011195D3400bf2466734A5Fc143f3144f8")
-			console.log("Kaidid: ", kaidid);
-
-			let temp = await orbisSDK.getProfileFollowing("did:pkh:eip155:1:0x2741db011195d3400bf2466734a5fc143f3144f8");
-			console.log("Temp: ", temp)
-
-
-			let { data, error, status } = await orbisSDK.api.from("orbis_v_profiles").select().range(0, 9);
+			let { data, error, status } = await orbisSDK.api.from("orbis_v_profiles").select().range(0, 99);
 			console.log(data);
 
 			let addresses = [];
@@ -98,22 +90,22 @@ export default function Neo() {
 				console.log("Start of item: ", item)
 
 				addresses = [];
-				addresses.push(item.address);
-				const followingAddresses = await orbisSDK.getProfileFollowing(item.did);
-				for (const element of followingAddresses.data) {
-					addresses.push(element.details.metadata.address)
-				}
-
-				query = `
-					FOREACH (x IN $addresses |
-						MERGE (a:Address {address: x})
-			  		)
-				`
-				params = {
-					addresses: addresses
-				}
 
 				try {
+					addresses.push(item.address);
+					const followingAddresses = await orbisSDK.getProfileFollowing(item.did);
+					for (const element of followingAddresses.data) {
+						addresses.push(element.details.metadata.address)
+					}
+
+					query = `
+						FOREACH (x IN $addresses |
+							MERGE (a:Address {address: x})
+			  			)
+					`
+					params = {
+						addresses: addresses
+					}
             		await session.run(query, params);
         		} catch(err) {
 					console.log("Error item: ", item)
@@ -180,7 +172,6 @@ export default function Neo() {
 
 		} catch (error) {
 			console.log(error)
-
 		}
 
 
