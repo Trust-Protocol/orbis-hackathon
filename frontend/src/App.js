@@ -13,7 +13,7 @@ function App() {
 			"neo4j+s://0f01d659.databases.neo4j.io:7687", // Cloud instance
 			neo4j.auth.basic(
 				"neo4j",
-				process.env.NEO4J_CLOUD_PASSWORD,
+				process.env.REACT_APP_NEO4J_CLOUD_PASSWORD,
 			),
 		)
 
@@ -22,8 +22,8 @@ function App() {
 
 		// Define a Cypher query to create a new relationship type
 		const query = `
-        MATCH (a)-[r]->(b) RETURN a,r,b
-    `
+        	MATCH (a)-[r]->(b) RETURN a,r,b
+    	`
 
 		// Execute the query
 		try {
