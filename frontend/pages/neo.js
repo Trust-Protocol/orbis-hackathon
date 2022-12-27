@@ -71,28 +71,115 @@ export default function Neo() {
 	// Pull data from OrbisSDK API - Play with calls here
 	async function pullData() {
 
+		// Create a neo4j driver instance
+		const driver = neo4j.driver(
+			'neo4j+s://0f01d659.databases.neo4j.io:7687', // Cloud instance
+			neo4j.auth.basic('neo4j', "L7PiDxQB32Lxid8tk3lsQsB3pbmiy2r-0B1QJZCrJAo") // Replace with your Neo4j username and password
+		);
+	
+		// Create a session
+		const session = driver.session();
+
 		try {
 
-			// let { data, error, status } = await orbis.api.from("orbis_v_profiles").select().ilike('address', '0x599759f1F068fA830876FC230Ec236DCe5db7F18');
-			let { data, error, status } = await orbisSDK.api.from("orbis_v_profiles").select().range(0, 10);
+			let kaidid = await orbisSDK.getDids("0x2741dB011195D3400bf2466734A5Fc143f3144f8")
+			console.log("Kaidid: ", kaidid);
+
+			let temp = await orbisSDK.getProfileFollowing("did:pkh:eip155:1:0x2741db011195d3400bf2466734a5fc143f3144f8");
+			console.log("Temp: ", temp)
+
+
+			let { data, error, status } = await orbisSDK.api.from("orbis_v_profiles").select().range(0, 9);
 			console.log(data);
 
-			// set Data for table
-			setData(data);
-			console.log('first user is ' + orbisData[0].username);
+			let addresses = [];
+			let query, params;
+			for (const item of data) {
+				console.log("Start of item: ", item)
 
-			//set obj for send
-			const orbisRes = await orbisData.reduce((acc, curr) => {
-				acc[curr.did] = curr;
-				return acc;
-			  }, {});
-			setOrbisObj(orbisRes);
-			console.log(orbisObj);
+				addresses = [];
+				addresses.push(item.address);
+				const followingAddresses = await orbisSDK.getProfileFollowing(item.did);
+				for (const element of followingAddresses.data) {
+					addresses.push(element.details.metadata.address)
+				}
+
+				query = `
+					FOREACH (x IN $addresses |
+						MERGE (a:Address {address: x})
+			  		)
+				`
+				params = {
+					addresses: addresses
+				}
+
+				try {
+            		await session.run(query, params);
+        		} catch(err) {
+					console.log("Error item: ", item)
+            		console.log("Err: ", err);
+        		}
+
+				for (const element of addresses.slice(1)) {
+					query = `
+						MATCH (a:Address {address: $from}), (b:Address {address: $to})
+						MERGE (a)-[:FOLLOWS]->(b)
+					`
+					params = {
+						from: item.address,
+						to: element
+					}
+
+					try {
+						await session.run(query, params);
+					} catch(err) {
+						console.log("Error item: ", item)
+						console.log("Err: ", err);
+					}
+
+				}
+
+
+				// query = `
+				// 	CREATE (a:Address {address: $from})
+				// 	FOREACH (b IN $following |
+				// 	  MERGE (a)-[r:FOLLOWS]->(:Address {address: b})
+				// 	)
+				// `
+				// const params = {
+				// 	from: item.address,
+				// 	following: ['Node B', 'Node C', 'Node D']
+				// }
+        		
+
+        		// // Execute the query
+        		// try {
+            	// 	const result = await session.run(query, params);
+            	// 	//console.log("Successful: ", result);
+        		// } catch(err) {
+				// 	console.log("Error item: ", item)
+            	// 	console.log("Err: ", err);
+        		// }
+
+			}
+			
+
+			// set Data for table
+			// setData(data);
+			// console.log('first user is ' + orbisData[0].username);
+
+			// //set obj for send
+			// const orbisRes = await orbisData.reduce((acc, curr) => {
+			// 	acc[curr.did] = curr;
+			// 	return acc;
+			//   }, {});
+			// setOrbisObj(orbisRes);
+			// console.log(orbisObj);
 
 
 
 		} catch (error) {
-
+			console.log(error)
 
 		}
 
