@@ -14,7 +14,7 @@ async function updateNodes() {
     const query = 'MATCH (n) RETURN n';
 
     // Execute the query in a transaction
-    let score;
+    let scores = [];
     const result = await session.writeTransaction(tx =>
         tx.run(query).then(result => {
             const records = result.records;
@@ -22,21 +22,32 @@ async function updateNodes() {
                 // Get the node from the record
                 const node = record.get(0);
 
-                // Add a new property to the node
-                //node.properties.eigentrustScore = '1';
+                //console.log(node);
+                const computeQuery = `
+                    MATCH (a)-[r]->(b:Address {address: $address}) RETURN count(r)
+                `
+                tx.run(computeQuery, {address: node.properties.address}).then(count => {
+                    const temp = count["records"][0]["_fields"][0]["low"];
+                    scores.push(temp / (temp + 5));
 
-                // Save the updated node back to the database
-                const updateQuery = `
-                    MATCH (n)
-                    WHERE id(n) = ${node.identity.toNumber()}
-                    SET n.eigentrustScore = 1
-                    RETURN n
-                `;
-                tx.run(updateQuery);
-                //tx.run(updateQuery, {props: node.properties});
+                    //console.log(node.identity.toNumber());
+                })
             });
         })
     );
+
+    console.log(scores)
+
+    for (let i=0; i<scores.length; i++) {
+        // Save the updated node back to the database
+        const updateQuery = `
+            MATCH (n)
+            WHERE id(n) = ${i}
+            SET n.eigentrustScore = ${scores[i]}
+            RETURN n
+        `;
+        await session.run(updateQuery);
+    }
 
     // Close the session and driver
     session.close();
