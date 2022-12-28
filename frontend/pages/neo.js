@@ -74,7 +74,7 @@ export default function Neo() {
 		// Create a neo4j driver instance
 		const driver = neo4j.driver(
 			'neo4j+s://0f01d659.databases.neo4j.io:7687', // Cloud instance
-			neo4j.auth.basic('neo4j', "L7PiDxQB32Lxid8tk3lsQsB3pbmiy2r-0B1QJZCrJAo") // Replace with your Neo4j username and password
+			neo4j.auth.basic('neo4j', process.env.REACT_APP_NEO4J_CLOUD_PASSWORD) // Replace with your Neo4j username and password
 		);
 	
 		// Create a session
