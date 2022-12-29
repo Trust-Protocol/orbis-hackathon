@@ -8,6 +8,7 @@ function App() {
 	const [address, setAddress] = useState("")
 	const [nodes, setNodes] = useState([])
 	const [edges, setEdges] = useState([])
+	const [nodeData, setNodeData] = useState({})
 
 	async function callDB() {
 		// Create a neo4j driver instance
@@ -43,7 +44,7 @@ function App() {
 				allNodes.push({
 					id: record._fields[0].elementId,
 					label: record._fields[0].labels,
-					properties: record._fields[0].properties
+					properties: record._fields[0].properties,
 				})
 
 				allEdges.push({
@@ -56,7 +57,7 @@ function App() {
 				allNodes.push({
 					id: record._fields[2].elementId,
 					label: record._fields[2].labels,
-					properties: record._fields[2].properties
+					properties: record._fields[2].properties,
 				})
 			})
 
@@ -85,9 +86,11 @@ function App() {
 		},
 		nodes: {
 			color: "#A32",
-			title: "dwbj"
 		},
 		height: "800px",
+		interaction: {
+			hover: true,
+		},
 	}
 
 	function removeDuplicate(arr) {
@@ -108,6 +111,26 @@ function App() {
 	// 		console.log(e.elementId)
 	// 	}
 	// })
+
+	const events = {
+		select: ({ nodes, edges }) => {
+			showData(nodes)
+		},
+		hoverNode: ({ nodes }) => {
+			showData(nodes)
+		},
+	}
+
+	function showData(node) {
+		nodes.forEach(e => {
+			if (e.id === node) {
+				setNodeData({
+					address: e.properties.address,
+					eigenScore: e.properties.eigentrustScore,
+				})
+			}
+		})
+	}
 
 	return (
 		<div className="App">
@@ -146,10 +169,16 @@ function App() {
 			</div>
 
 			{edges.length > 0 ? (
-				<Graph graph={graph} options={options} />
+				<Graph graph={graph} options={options} events={events} />
 			) : (
-				<></>
+					<>search an address to get visualize it <br />
+					example : 0xc834b86b4c4bb10681b3284a59f5c0240aed3510</>
 			)}
+
+			<div className="display-info">
+				<p id="address">Address : {nodeData.address}</p>
+				<p id="connections">Eigen Score : {nodeData.eigenScore}</p>
+			</div>
 		</div>
 	)
 }

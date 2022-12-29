@@ -34,3 +34,17 @@
   border-radius: 0 5px 5px 0;
   cursor: pointer;
 }
+
+.display-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  position: fixed;
+  bottom: 10px;
+}
+
+p {
+  background-color: rgb(48, 48, 48);
+  color: rgb(54, 198, 198);
+  padding: 10px;
+}
