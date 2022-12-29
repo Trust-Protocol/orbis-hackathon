@@ -59,6 +59,7 @@ export default function Neo() {
 	
 		// Create a session
 		const session = driver.session();
+
 		// Instantiate PassportScorer
 		const scorer = new PassportScorer([
 			{
@@ -79,6 +80,13 @@ export default function Neo() {
 
 				addresses = [];
 
+				try {
+					addresses.push(item.address);
+					const followingAddresses = await orbisSDK.getProfileFollowing(item.did);
+					for (const element of followingAddresses.data) {
+						addresses.push(element.details.metadata.address)
+					}
+
 
 				//Push user address to empty array and get followers for the user
 				try {
@@ -87,7 +95,6 @@ export default function Neo() {
 					for (const element of followingAddresses.data) {
 						addresses.push(element.details.metadata.address)
 					}
-
 
 					query = `
 						FOREACH (x IN $addresses |
@@ -98,11 +105,14 @@ export default function Neo() {
 						addresses: addresses
 					}
             		await session.run(query, params);
+
 					console.log('Pushing array of addresses to DB');
+          
         		} catch(err) {
 					console.log("Error item: ", item)
             		console.log("Err: ", err);
         		}
+
 
 				// Score each address
 				for (const address of addresses) {
@@ -131,6 +141,7 @@ export default function Neo() {
 				}
 
 				//Create Relationship
+
 				for (const element of addresses.slice(1)) {
 					query = `
 						MATCH (a:Address {address: $from}), (b:Address {address: $to})
@@ -155,9 +166,51 @@ export default function Neo() {
 
 			}
 
+					try {
+						await session.run(query, params);
+					} catch(err) {
+						console.log("Error item: ", item)
+						console.log("Err: ", err);
+					}
 
-		} catch (error) {
+				}
 
+
+				// query = `
+				// 	CREATE (a:Address {address: $from})
+				// 	FOREACH (b IN $following |
+				// 	  MERGE (a)-[r:FOLLOWS]->(:Address {address: b})
+				// 	)
+				// `
+				// const params = {
+				// 	from: item.address,
+				// 	following: ['Node B', 'Node C', 'Node D']
+				// }
+        		
+
+        		// // Execute the query
+        		// try {
+            	// 	const result = await session.run(query, params);
+            	// 	//console.log("Successful: ", result);
+        		// } catch(err) {
+				// 	console.log("Error item: ", item)
+            	// 	console.log("Err: ", err);
+        		// }
+
+			}
+			
+
+			// set Data for table
+			// setData(data);
+			// console.log('first user is ' + orbisData[0].username);
+
+			// //set obj for send
+			// const orbisRes = await orbisData.reduce((acc, curr) => {
+			// 	acc[curr.did] = curr;
+			// 	return acc;
+			//   }, {});
+			// setOrbisObj(orbisRes);
+			// console.log(orbisObj);
 
 		} finally {
 
