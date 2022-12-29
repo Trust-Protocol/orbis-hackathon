@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import neo4j from 'neo4j-driver';
 import { Orbis } from '@orbisclub/orbis-sdk';
 import { Table, useAsyncList } from "@nextui-org/react";
+import { PassportScorer } from "@gitcoinco/passport-sdk-scorer";
+
 // Initialize orbis
 const orbisSDK = new Orbis();
 
@@ -13,7 +15,7 @@ function startNeo() {
 		// Set currently to LyghtCode's neo instance. TODO add to env variables
 		const driver = neo4j.driver(
 			'neo4j+s://7b86ca55.databases.neo4j.io', // Replace with the bolt URI of your Neo4j instance
-			neo4j.auth.basic('neo4j', process.env.NEO4J_PASSWORD) // Replace with your Neo4j username and password
+			neo4j.auth.basic('neo4j', '') // Replace with your Neo4j username and password
 		);
 
 		// Create and set session
@@ -52,14 +54,22 @@ export default function Neo() {
 		// Create a neo4j driver instance
 		const driver = neo4j.driver(
 			'neo4j+s://7b86ca55.databases.neo4j.io', // Replace with the bolt URI of your Neo4j instance
-			neo4j.auth.basic('neo4j', process.env.NEO4J_PASSWORD) // Replace with your Neo4j username and password
+			neo4j.auth.basic('neo4j', process.env.NEXT_PUBLIC_NEO4J_PASSWORD) // Replace with your Neo4j username and password
 		);
 	
 		// Create a session
 		const session = driver.session();
+		// Instantiate PassportScorer
+		const scorer = new PassportScorer([
+			{
+				provider: "Github",
+				issuer: "did:key:z6MkghvGHLobLEdj1bgRLhS4LPGJAvbMA1tn2zcRyqmYU5LC",
+				score: 0.5
+			}
+		]);
 
 		try {
-			let { data, error, status } = await orbisSDK.api.from("orbis_v_profiles").select().range(0, 99);
+			let { data, error, status } = await orbisSDK.api.from("orbis_v_profiles").select().range(0, 9);
 			console.log(data);
 
 			let addresses = [];
@@ -69,13 +79,15 @@ export default function Neo() {
 
 				addresses = [];
 
-				//Push addresses to empty array and get followers for each
+
+				//Push user address to empty array and get followers for the user
 				try {
 					addresses.push(item.address);
 					const followingAddresses = await orbisSDK.getProfileFollowing(item.did);
 					for (const element of followingAddresses.data) {
 						addresses.push(element.details.metadata.address)
 					}
+
 
 					query = `
 						FOREACH (x IN $addresses |
@@ -86,10 +98,37 @@ export default function Neo() {
 						addresses: addresses
 					}
             		await session.run(query, params);
+					console.log('Pushing array of addresses to DB');
         		} catch(err) {
 					console.log("Error item: ", item)
             		console.log("Err: ", err);
         		}
+
+				// Score each address
+				for (const address of addresses) {
+
+					let score = await scorer.getScore(address);
+					
+					// Change name of a.score_provider = $score
+					query = `
+							MATCH (a:Address {address: $user})
+							SET a.git_score = $score
+						
+					`
+					params = {
+						user: address,
+						score: score
+					}
+
+					try {
+						await session.run(query, params);
+						console.log('Merging score for ' + address);
+					} catch(err) {
+						console.log("Error item: ", item)
+						console.log("Err: ", err);
+					}
+
+				}
 
 				//Create Relationship
 				for (const element of addresses.slice(1)) {
@@ -104,6 +143,7 @@ export default function Neo() {
 
 					try {
 						await session.run(query, params);
+						console.log("Creating Relationships for: " + element);
 					} catch(err) {
 						console.log("Error item: ", item)
 						console.log("Err: ", err);
@@ -111,12 +151,18 @@ export default function Neo() {
 
 				}
 
+				
+
 			}
 
 
 		} catch (error) {
 
 
+		} finally {
+
+			// Each pull will close the session; just save this file to start a new session.
+			await session.close();
 		}
 
 
@@ -189,7 +235,7 @@ export default function Neo() {
 						>
 							<Table.Header columns={columns}>
 								{(column) => (
-									<Table.Column maxWidth={'33px'} key={column.uid}>{column.name}</Table.Column>
+									<Table.Column maxwidth={'33px'} key={column.uid}>{column.name}</Table.Column>
 								)}
 							</Table.Header>
 							<Table.Body
