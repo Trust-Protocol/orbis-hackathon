@@ -8,27 +8,6 @@ import { PassportScorer } from "@gitcoinco/passport-sdk-scorer";
 // Initialize orbis
 const orbisSDK = new Orbis();
 
-// Create a neo4j driver instance, also needs to be synchronus
-function startNeo() {
-	try {
-
-		// Set currently to LyghtCode's neo instance. TODO add to env variables
-		const driver = neo4j.driver(
-			'neo4j+s://7b86ca55.databases.neo4j.io', // Replace with the bolt URI of your Neo4j instance
-			neo4j.auth.basic('neo4j', '') // Replace with your Neo4j username and password
-		);
-
-		// Create and set session
-		const session = driver.session();
-		setNeo(session);
-
-	} catch (error) {
-		console.log(error);
-	}
-
-
-};
-
 
 export default function Neo() {
 
@@ -56,7 +35,7 @@ export default function Neo() {
 			'neo4j+s://7b86ca55.databases.neo4j.io', // Replace with the bolt URI of your Neo4j instance
 			neo4j.auth.basic('neo4j', process.env.NEXT_PUBLIC_NEO4J_PASSWORD) // Replace with your Neo4j username and password
 		);
-	
+
 		// Create a session
 		const session = driver.session();
 
@@ -79,15 +58,6 @@ export default function Neo() {
 				console.log("Start of item: ", item)
 
 				addresses = [];
-
-				try {
-					addresses.push(item.address);
-					const followingAddresses = await orbisSDK.getProfileFollowing(item.did);
-					for (const element of followingAddresses.data) {
-						addresses.push(element.details.metadata.address)
-					}
-
-
 				//Push user address to empty array and get followers for the user
 				try {
 					addresses.push(item.address);
@@ -96,35 +66,34 @@ export default function Neo() {
 						addresses.push(element.details.metadata.address)
 					}
 
+
 					query = `
 						FOREACH (x IN $addresses |
 							MERGE (a:Address {address: x})
-			  			)
-					`
+			  			)`
 					params = {
 						addresses: addresses
 					}
-            		await session.run(query, params);
+					await session.run(query, params);
 
 					console.log('Pushing array of addresses to DB');
-          
-        		} catch(err) {
-					console.log("Error item: ", item)
-            		console.log("Err: ", err);
-        		}
 
+
+				} catch (err) {
+					console.log("Err: ", err);
+				}
 
 				// Score each address
 				for (const address of addresses) {
 
 					let score = await scorer.getScore(address);
-					
+
 					// Change name of a.score_provider = $score
 					query = `
-							MATCH (a:Address {address: $user})
-							SET a.git_score = $score
-						
-					`
+						MATCH (a:Address {address: $user})
+						SET a.git_score = $score
+						`
+
 					params = {
 						user: address,
 						score: score
@@ -133,7 +102,7 @@ export default function Neo() {
 					try {
 						await session.run(query, params);
 						console.log('Merging score for ' + address);
-					} catch(err) {
+					} catch (err) {
 						console.log("Error item: ", item)
 						console.log("Err: ", err);
 					}
@@ -141,12 +110,12 @@ export default function Neo() {
 				}
 
 				//Create Relationship
-
 				for (const element of addresses.slice(1)) {
 					query = `
 						MATCH (a:Address {address: $from}), (b:Address {address: $to})
 						MERGE (a)-[:FOLLOWS]->(b)
-					`
+						`
+
 					params = {
 						from: item.address,
 						to: element
@@ -155,109 +124,20 @@ export default function Neo() {
 					try {
 						await session.run(query, params);
 						console.log("Creating Relationships for: " + element);
-					} catch(err) {
+					} catch (err) {
 						console.log("Error item: ", item)
 						console.log("Err: ", err);
 					}
 
 				}
 
-				
-
 			}
+		} catch (err) {
 
-					try {
-						await session.run(query, params);
-					} catch(err) {
-						console.log("Error item: ", item)
-						console.log("Err: ", err);
-					}
+			console.log("Err: ", err);
 
-				}
-
-
-				// query = `
-				// 	CREATE (a:Address {address: $from})
-				// 	FOREACH (b IN $following |
-				// 	  MERGE (a)-[r:FOLLOWS]->(:Address {address: b})
-				// 	)
-				// `
-				// const params = {
-				// 	from: item.address,
-				// 	following: ['Node B', 'Node C', 'Node D']
-				// }
-        		
-
-        		// // Execute the query
-        		// try {
-            	// 	const result = await session.run(query, params);
-            	// 	//console.log("Successful: ", result);
-        		// } catch(err) {
-				// 	console.log("Error item: ", item)
-            	// 	console.log("Err: ", err);
-        		// }
-
-			}
-			
-
-			// set Data for table
-			// setData(data);
-			// console.log('first user is ' + orbisData[0].username);
-
-			// //set obj for send
-			// const orbisRes = await orbisData.reduce((acc, curr) => {
-			// 	acc[curr.did] = curr;
-			// 	return acc;
-			//   }, {});
-			// setOrbisObj(orbisRes);
-			// console.log(orbisObj);
-
-		} finally {
-
-			// Each pull will close the session; just save this file to start a new session.
-			await session.close();
 		}
 
-
-	};
-
-
-	// Organize,Remove,Edit the Data Structure from Orbis here
-	async function handleData() {
-
-		try {
-
-			// Set currently to LyghtCode's neo instance. TODO add to env variables
-			const driver = neo4j.driver(
-				'neo4j+s://7b86ca55.databases.neo4j.io', // Replace with the bolt URI of your Neo4j instance
-				neo4j.auth.basic('neo4j', process.env.NEXT_PUBLIC_NEO4J_PASSWORD) // Replace with your Neo4j username and password
-			);
-
-
-			// Verify Connect
-			try {
-				await driver.getServerInfo();
-				console.log('Driver created');
-			} catch (error) {
-				console.log(`connectivity verification failed. ${error}`);
-			}
-
-			// Create and set session
-			const session = driver.session();
-
-			// Use UNWIND instead of for each because query will be very large with real data
-			const result = await session.run('UNWIND $orbisObj AS orb CREATE (p:PERSON {id: orb.did})', {orbisObj: orbisData});
-
-			console.log(result);
-
-
-
-
-
-		} catch (error) {
-			console.log(error);
-
-		}
 
 	};
 
@@ -310,9 +190,9 @@ export default function Neo() {
 								onPageChange={(page) => console.log({ page })}
 							/>
 						</Table>
-						<Button rounded ghost shadow color="success" auto
+						{/* <Button rounded ghost shadow color="success" auto
 							onClick={handleData}
-						>Send Data to Neo</Button>
+						>Send Data to Neo</Button> */}
 					</div>
 				</div>
 			</main>
