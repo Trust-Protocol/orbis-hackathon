@@ -43,6 +43,7 @@ function App() {
 				allNodes.push({
 					id: record._fields[0].elementId,
 					label: record._fields[0].labels,
+					properties: record._fields[0].properties
 				})
 
 				allEdges.push({
@@ -55,6 +56,7 @@ function App() {
 				allNodes.push({
 					id: record._fields[2].elementId,
 					label: record._fields[2].labels,
+					properties: record._fields[2].properties
 				})
 			})
 
@@ -83,6 +85,7 @@ function App() {
 		},
 		nodes: {
 			color: "#A32",
+			title: "dwbj"
 		},
 		height: "800px",
 	}
