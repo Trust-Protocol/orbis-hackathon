@@ -114,7 +114,7 @@ function App() {
 
 	const events = {
 		select: ({ nodes, edges }) => {
-			showData(nodes)
+			showData(nodes[0])
 		},
 		hoverNode: ({ nodes }) => {
 			showData(nodes)
@@ -169,16 +169,22 @@ function App() {
 			</div>
 
 			{edges.length > 0 ? (
-				<Graph graph={graph} options={options} events={events} />
-			) : (
-					<>search an address to get visualize it <br />
-					example : 0xc834b86b4c4bb10681b3284a59f5c0240aed3510</>
-			)}
+				<>
+					<Graph graph={graph} options={options} events={events} />
 
-			<div className="display-info">
-				<p id="address">Address : {nodeData.address}</p>
-				<p id="connections">Eigen Score : {nodeData.eigenScore}</p>
-			</div>
+					<div className="display-info">
+						<p id="address">Address : {nodeData.address}</p>
+						<p id="connections">
+							Eigen Score : {nodeData.eigenScore}
+						</p>
+					</div>
+				</>
+			) : (
+				<>
+					search an address to get visualize it <br />
+					example : 0xc834b86b4c4bb10681b3284a59f5c0240aed3510
+				</>
+			)}
 		</div>
 	)
 }
