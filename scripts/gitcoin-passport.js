@@ -10,7 +10,7 @@ async function main() {
 
     // Create a neo4j driver instance
     const driver = neo4j.driver(
-        'neo4j+s://7b86ca55.databases.neo4j.io', // Replace with the bolt URI of your Neo4j instance
+        'neo4j+s://0f01d659.databases.neo4j.io', // Replace with the bolt URI of your Neo4j instance
         neo4j.auth.basic('neo4j', process.env.CLOUD_NEO4J_PASSWORD) // Replace with your Neo4j username and password
     );
 
