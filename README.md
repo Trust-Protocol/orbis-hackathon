@@ -16,3 +16,7 @@ The Eigentrust algorithm is an iterative algorithm that assigns reputation score
 
 The data indexing script and Eigentrust algorithm is run periodically to include new users on the Orbis platform and make sure any updates on a user's Gitcoin passport is captured. The changes are automatically feeded to the frontend. 
 
+### Limitations
+
+Currently, we have only indexed a subset of all the users on the Orbis platform to showcase the proof-of-concept. Therefore, not all valid addresses work on the frontend. 
+
