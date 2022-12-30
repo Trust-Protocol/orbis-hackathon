@@ -8,6 +8,8 @@ Content personalization is an important pillar in a social network platform to p
 
 We built a demo user interface where inputting an address shows the immediate connections (followers and following profiles). Each node also has an eigentrust score, which is precomputed. 
 
+Some example addresses to play around with are `0xf940a19af21da9b77a134ddf4aa20453489d96f6` and `0xc834b86b4c4bb10681b3284a59f5c0240aed3510`. 
+
 ### Eigentrust
 
 The Eigentrust algorithm is an iterative algorithm that assigns reputation score to each profile based on the reputation scores of immediate connections. During the first iteration, the starting reputation score of each user is its Gitcoin passport score. For example, if a user has a Gitcoin score of 1 (maximum score is 1) and follows x number of profiles, that means all the profiles that the user follows will receive a reputation score of 1/x. This process is repeated for all users and the reputation score of a user after one iteration will be the sum of all scores received by its follower. For subsequent iterations, the starting reputation score will be based on the reputation score computed from the previous iteration. The algorithm is run until users' reputation scores have converged. 
