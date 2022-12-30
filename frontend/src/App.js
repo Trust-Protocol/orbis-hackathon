@@ -12,11 +12,13 @@ function App() {
 		address: null,
 		eigenScore: null,
 	})
+	const [loader, setLoader] = useState(false)
 
 	async function callDB() {
 		setNodes([])
 		setEdges([])
-		
+		setLoader(true)
+
 		// Create a neo4j driver instance
 		const driver = neo4j.driver(
 			"neo4j+s://0f01d659.databases.neo4j.io:7687", // Cloud instance
@@ -69,6 +71,7 @@ function App() {
 
 			setNodes(removeDuplicate(allNodes))
 			setEdges(removeDuplicate(allEdges))
+			setLoader(false)
 		} catch (err) {
 			console.log("Err: ", err)
 		}
@@ -177,6 +180,14 @@ function App() {
 			<div className="main">
 				{edges.length > 0 ? (
 					<Graph graph={graph} options={options} events={events} />
+				) : loader ? (
+					<>
+						<img
+							src="https://media.tenor.com/FawYo00tBekAAAAC/loading-thinking.gif"
+							alt="loader"
+						/> <br />
+						Loading the Graph for you ...
+					</>
 				) : (
 					<>
 						search an address to visualize it <br />
