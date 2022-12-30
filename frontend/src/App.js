@@ -2,15 +2,24 @@ import "./App.css"
 import { useState } from "react"
 import Graph from "react-vis-network-graph"
 import neo4j from "neo4j-driver"
+import toast, { Toaster } from "react-hot-toast"
 import "./App.css"
 
 function App() {
 	const [address, setAddress] = useState("")
 	const [nodes, setNodes] = useState([])
 	const [edges, setEdges] = useState([])
-	const [nodeData, setNodeData] = useState({})
+	const [nodeData, setNodeData] = useState({
+		address: null,
+		eigenScore: null,
+	})
+	const [loader, setLoader] = useState(false)
 
 	async function callDB() {
+		setNodes([])
+		setEdges([])
+		setLoader(true)
+
 		// Create a neo4j driver instance
 		const driver = neo4j.driver(
 			"neo4j+s://0f01d659.databases.neo4j.io:7687", // Cloud instance
@@ -63,6 +72,18 @@ function App() {
 
 			setNodes(removeDuplicate(allNodes))
 			setEdges(removeDuplicate(allEdges))
+			setLoader(false)
+
+			toast("Click on any node to get more info ...", {
+				icon: "👏",
+				duration: 5000,
+				position: "bottom-left",
+				style: {
+					borderRadius: "10px",
+					background: "#333",
+					color: "#fff",
+				},
+			})
 		} catch (err) {
 			console.log("Err: ", err)
 		}
@@ -87,7 +108,7 @@ function App() {
 		nodes: {
 			color: "#A32",
 		},
-		height: "800px",
+		height: "600px",
 		interaction: {
 			hover: true,
 		},
@@ -134,6 +155,7 @@ function App() {
 
 	return (
 		<div className="App">
+			<Toaster />
 			<div className="search">
 				<input
 					type="text"
@@ -168,22 +190,35 @@ function App() {
 				</button>
 			</div>
 
-			{edges.length > 0 ? (
-				<>
+			<div className="main">
+				{edges.length > 0 ? (
 					<Graph graph={graph} options={options} events={events} />
+				) : loader ? (
+					<>
+						<img
+							src="https://media.tenor.com/FawYo00tBekAAAAC/loading-thinking.gif"
+							alt="loader"
+						/>{" "}
+						<br />
+						Loading the Graph for you ...
+					</>
+				) : (
+					<>
+						search an address to visualize it <br />
+						eg : 0xc834b86b4c4bb10681b3284a59f5c0240aed3510
+					</>
+				)}
+			</div>
 
-					<div className="display-info">
-						<p id="address">Address : {nodeData.address}</p>
-						<p id="connections">
-							Eigen Score : {nodeData.eigenScore}
-						</p>
-					</div>
-				</>
+			{nodeData.address !== null && nodeData.eigenScore !== null ? (
+				<div className="display-info">
+					<p id="address">Address : {nodeData.address}</p>
+					<p id="connections">
+						Eigen Score : {nodeData.eigenScore.toPrecision(3)}
+					</p>
+				</div>
 			) : (
-				<>
-					search an address to visualize it <br />
-					example : 0xc834b86b4c4bb10681b3284a59f5c0240aed3510
-				</>
+				<></>
 			)}
 		</div>
 	)
