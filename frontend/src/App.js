@@ -16,7 +16,7 @@ function App() {
 			"neo4j+s://0f01d659.databases.neo4j.io:7687", // Cloud instance
 			neo4j.auth.basic(
 				"neo4j",
-				process.env.REACT_APP_CLOUD_NEO4J_PASSWORD,
+				"L7PiDxQB32Lxid8tk3lsQsB3pbmiy2r-0B1QJZCrJAo",
 			),
 		)
 
