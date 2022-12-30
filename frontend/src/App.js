@@ -2,6 +2,7 @@ import "./App.css"
 import { useState } from "react"
 import Graph from "react-vis-network-graph"
 import neo4j from "neo4j-driver"
+import toast, { Toaster } from "react-hot-toast"
 import "./App.css"
 
 function App() {
@@ -72,6 +73,17 @@ function App() {
 			setNodes(removeDuplicate(allNodes))
 			setEdges(removeDuplicate(allEdges))
 			setLoader(false)
+
+			toast("Click on any node to get more info ...", {
+				icon: "👏",
+				duration: 5000,
+				position: "bottom-left",
+				style: {
+					borderRadius: "10px",
+					background: "#333",
+					color: "#fff",
+				},
+			})
 		} catch (err) {
 			console.log("Err: ", err)
 		}
@@ -143,6 +155,7 @@ function App() {
 
 	return (
 		<div className="App">
+			<Toaster />
 			<div className="search">
 				<input
 					type="text"
@@ -185,7 +198,8 @@ function App() {
 						<img
 							src="https://media.tenor.com/FawYo00tBekAAAAC/loading-thinking.gif"
 							alt="loader"
-						/> <br />
+						/>{" "}
+						<br />
 						Loading the Graph for you ...
 					</>
 				) : (
