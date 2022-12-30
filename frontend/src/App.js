@@ -8,9 +8,15 @@ function App() {
 	const [address, setAddress] = useState("")
 	const [nodes, setNodes] = useState([])
 	const [edges, setEdges] = useState([])
-	const [nodeData, setNodeData] = useState({})
+	const [nodeData, setNodeData] = useState({
+		address: null,
+		eigenScore: null,
+	})
 
 	async function callDB() {
+		setNodes([])
+		setEdges([])
+		
 		// Create a neo4j driver instance
 		const driver = neo4j.driver(
 			"neo4j+s://0f01d659.databases.neo4j.io:7687", // Cloud instance
@@ -87,7 +93,7 @@ function App() {
 		nodes: {
 			color: "#A32",
 		},
-		height: "800px",
+		height: "600px",
 		interaction: {
 			hover: true,
 		},
@@ -168,22 +174,26 @@ function App() {
 				</button>
 			</div>
 
-			{edges.length > 0 ? (
-				<>
+			<div className="main">
+				{edges.length > 0 ? (
 					<Graph graph={graph} options={options} events={events} />
+				) : (
+					<>
+						search an address to visualize it <br />
+						eg : 0xc834b86b4c4bb10681b3284a59f5c0240aed3510
+					</>
+				)}
+			</div>
 
-					<div className="display-info">
-						<p id="address">Address : {nodeData.address}</p>
-						<p id="connections">
-							Eigen Score : {nodeData.eigenScore}
-						</p>
-					</div>
-				</>
+			{nodeData.address !== null && nodeData.eigenScore !== null ? (
+				<div className="display-info">
+					<p id="address">Address : {nodeData.address}</p>
+					<p id="connections">
+						Eigen Score : {nodeData.eigenScore.toPrecision(3)}
+					</p>
+				</div>
 			) : (
-				<>
-					search an address to visualize it <br />
-					example : 0xc834b86b4c4bb10681b3284a59f5c0240aed3510
-				</>
+				<></>
 			)}
 		</div>
 	)
